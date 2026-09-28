@@ -11,6 +11,15 @@ updates:
       - dependency-name: 'react-dom'
       - dependency-name: 'react-native*'
       - dependency-name: '@react-native*'
+      # Toolchain ist ans Expo-SDK gekoppelt (eslint-config-expo, jest-expo): nur Patches/Minors.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'jest'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/jest'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: npm
     directory: /worker
     schedule:
