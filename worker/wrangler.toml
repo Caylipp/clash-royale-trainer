@@ -1,0 +1,10 @@
+name = "clash-royale-trainer-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Standard: RoyaleAPI-Proxy (API-Key muss 45.79.218.79 freigeben).
+UPSTREAM = "https://proxy.royaleapi.dev/v1"
+ALLOWED_ORIGIN = "*"
+
+# Secret setzen mit: npx wrangler secret put CR_API_TOKEN
