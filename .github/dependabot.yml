@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Expo-Pakete nur gebündelt per `npx expo install --fix` aktualisieren, nicht einzeln.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    ignore:
+      - dependency-name: 'expo*'
+      - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: 'react-native*'
+      - dependency-name: '@react-native*'
+  - package-ecosystem: npm
+    directory: /worker
+    schedule:
+      interval: monthly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
