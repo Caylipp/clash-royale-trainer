@@ -17,6 +17,8 @@ export interface TrainerConfig {
   mirror: boolean;
   collector: boolean;
   questions: number;
+  /** Lernhilfe: zeigt den Elixier-Handel (Ausgaben beider Spieler) und erklärt ihn nach jeder Frage. */
+  coach: boolean;
 }
 
 export const PRESETS: Record<Exclude<Preset, 'custom'>, Omit<TrainerConfig, 'preset'> & { label: string; hint: string }> = {
@@ -29,6 +31,7 @@ export const PRESETS: Record<Exclude<Preset, 'custom'>, Omit<TrainerConfig, 'pre
     mirror: false,
     collector: false,
     questions: 8,
+    coach: true,
   },
   normal: {
     label: 'Fortgeschritten',
@@ -39,6 +42,7 @@ export const PRESETS: Record<Exclude<Preset, 'custom'>, Omit<TrainerConfig, 'pre
     mirror: false,
     collector: false,
     questions: 10,
+    coach: false,
   },
   pro: {
     label: 'Profi',
@@ -49,6 +53,7 @@ export const PRESETS: Record<Exclude<Preset, 'custom'>, Omit<TrainerConfig, 'pre
     mirror: true,
     collector: true,
     questions: 12,
+    coach: false,
   },
 };
 

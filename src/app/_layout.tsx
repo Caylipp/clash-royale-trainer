@@ -23,6 +23,7 @@ export default function RootLayout() {
         <StatusBar style="light" />
         <Stack screenOptions={{ contentStyle: { backgroundColor: colors.bg } }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="practice" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
           <Stack.Screen name="train" options={{ headerShown: false, gestureEnabled: false, presentation: 'fullScreenModal' }} />
         </Stack>
       </ThemeProvider>

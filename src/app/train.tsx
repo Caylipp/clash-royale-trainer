@@ -3,7 +3,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useKeepAwake } from 'expo-keep-awake';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,6 +11,7 @@ import { CardTile, ElixirBar, ElixirDrop } from '../components/CardTile';
 import { Button, Card } from '../components/ui';
 import { card } from '../data/cards';
 import { AnswerRecord, useTrainerSession } from '../hooks/useTrainerSession';
+import { tradeInfo, TradeInfo } from '../lib/coach';
 import { formatClock, rateAt, SimEvent } from '../lib/elixir';
 import { rankFor, trainerShareText } from '../lib/rating';
 import { PRESETS } from '../lib/trainerConfig';
@@ -52,6 +53,12 @@ export default function TrainScreen() {
     },
   }, player?.currentDeck);
 
+  const trade = useMemo(
+    () => (config.coach ? tradeInfo(s.round.sim, s.round.own.sim, s.simTime) : null),
+    [config.coach, s.round, s.simTime],
+  );
+  const revealTrade =
+    config.coach && s.lastAnswer ? tradeInfo(s.round.sim, s.round.own.sim, s.lastAnswer.t) : null;
   if (s.phase === 'done') {
     return (
       <Results
@@ -129,13 +136,13 @@ export default function TrainScreen() {
       {!config.showFeed && <View style={{ flex: 1 }} />}
 
       {s.phase !== 'countdown' && (
-        <OwnPanel elixir={s.ownElixir} plays={s.ownPlays} deckName={s.round.own.deckName} />
+        <OwnPanel elixir={s.ownElixir} plays={s.ownPlays} deckName={s.round.own.deckName} trade={trade} />
       )}
 
       <View style={styles.bottom}>
-        {s.phase === 'question' && <Question onAnswer={s.answer} />}
+        {s.phase === 'question' && <Question onAnswer={s.answer} coach={config.coach} />}
         {s.phase === 'reveal' && s.lastAnswer && (
-          <Reveal answer={s.lastAnswer} onNext={s.next} last={s.qIndex + 1 >= s.total} />
+          <Reveal answer={s.lastAnswer} onNext={s.next} last={s.qIndex + 1 >= s.total} trade={revealTrade} />
         )}
         {(s.phase === 'running' || s.phase === 'countdown') && (
           <Text style={styles.hint}>Behalte das Elixier des Gegners im Kopf. Gleich kommt die Frage!</Text>
@@ -146,7 +153,17 @@ export default function TrainScreen() {
 }
 
 /** Dein eigenes Elixier und deine letzten Karten: im echten Match immer sichtbar. */
-function OwnPanel({ elixir, plays, deckName }: { elixir: number; plays: Play[]; deckName: string }) {
+function OwnPanel({
+  elixir,
+  plays,
+  deckName,
+  trade,
+}: {
+  elixir: number;
+  plays: Play[];
+  deckName: string;
+  trade: TradeInfo | null;
+}) {
   const recent = plays.slice(-4);
   return (
     <View style={styles.own}>
@@ -157,6 +174,11 @@ function OwnPanel({ elixir, plays, deckName }: { elixir: number; plays: Play[]; 
         </View>
       </View>
       <ElixirBar value={elixir} height={12} />
+      {trade && (
+        <Text style={styles.tally}>
+          Lernhilfe · ausgegeben: du {trade.spentOwn} · Gegner {trade.spentOpp}
+        </Text>
+      )}
       <View style={styles.ownCards}>
         {recent.length === 0 ? (
           <Text style={styles.ownEmpty}>Du hast noch keine Karte gelegt.</Text>
@@ -186,10 +208,15 @@ function FlashCard({ play, simTime }: { play: Play; simTime: number }) {
   );
 }
 
-function Question({ onAnswer }: { onAnswer: (n: number) => void }) {
+function Question({ onAnswer, coach }: { onAnswer: (n: number) => void; coach: boolean }) {
   return (
     <View>
       <Text style={styles.question}>Wie viel Elixier hat der Gegner jetzt?</Text>
+      {coach && (
+        <Text style={styles.coachHint}>
+          Tipp: Ihr regeneriert gleich schnell. Gegner ≈ dein Elixier + (deine Ausgaben − seine Ausgaben).
+        </Text>
+      )}
       <View style={styles.pad}>
         {Array.from({ length: 11 }, (_, n) => (
           <Pressable
@@ -207,7 +234,17 @@ function Question({ onAnswer }: { onAnswer: (n: number) => void }) {
   );
 }
 
-function Reveal({ answer, onNext, last }: { answer: AnswerRecord; onNext: () => void; last: boolean }) {
+function Reveal({
+  answer,
+  onNext,
+  last,
+  trade,
+}: {
+  answer: AnswerRecord;
+  onNext: () => void;
+  last: boolean;
+  trade: TradeInfo | null;
+}) {
   const ok = answer.error === 0;
   const ex = answer.explanation;
   const capped = ex.lastPlay ? ex.lastPlay.elixirAfter + ex.regen + ex.collectorTicks > 10 : false;
@@ -233,6 +270,19 @@ function Reveal({ answer, onNext, last }: { answer: AnswerRecord; onNext: () => 
           {ex.collectorTicks ? ` und +${ex.collectorTicks} vom Sammler` : ''}
           {capped ? ' (gedeckelt bei 10 – Elixier verschwendet!)' : ''}.
         </Text>
+      )}
+      {trade && (
+        <View style={styles.coachBox}>
+          <Text style={styles.coachTitle}>Elixier-Handel</Text>
+          <Text style={styles.explain}>
+            Du hattest {fmt(trade.ownElixir)} und hast insgesamt {trade.spentOwn} ausgegeben, der Gegner {trade.spentOpp}.
+            {trade.collectorOpp !== trade.collectorOwn
+              ? ` Sammler: Gegner +${trade.collectorOpp}, du +${trade.collectorOwn}.`
+              : ''}{' '}
+            Also: {fmt(trade.ownElixir)} + ({trade.spentOwn} − {trade.spentOpp}) = <Text style={styles.bold}>{fmt(trade.estimate)}</Text>
+            {trade.reliable ? '.' : ' (nur ungefähr: bei einem von euch ist Elixier über 10 verfallen).'}
+          </Text>
+        </View>
       )}
       <Button label={last ? 'Ergebnis ansehen' : 'Weiter'} variant="primary" icon="arrow-forward" onPress={onNext} />
     </View>
@@ -387,13 +437,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  padKeyWide: { width: '38%', aspectRatio: undefined },
+  padKeyWide: { width: '38%', aspectRatio: undefined, height: 58 },
   padText: { color: colors.text, fontSize: 22, fontWeight: '900' },
   revealHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   revealTitle: { fontSize: 20, fontWeight: '900', flex: 1 },
   revealPoints: { color: colors.accent, fontSize: 18, fontWeight: '800' },
   revealText: { color: colors.text, fontSize: 14 },
   bold: { fontWeight: '900', color: colors.elixir },
+  tally: { color: colors.accent, fontSize: 12, fontWeight: '700' },
+  coachHint: { color: colors.accent, fontSize: 13, textAlign: 'center', marginBottom: 10 },
+  coachBox: { backgroundColor: colors.accentDim, borderRadius: radius.sm, padding: 10, gap: 4 },
+  coachTitle: { color: colors.accent, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
   explain: { color: colors.muted, fontSize: 13, lineHeight: 18 },
   results: { padding: 20, alignItems: 'center', gap: 14 },
   rankEmoji: { fontSize: 56, marginTop: 20 },

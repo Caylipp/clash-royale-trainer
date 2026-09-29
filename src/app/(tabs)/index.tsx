@@ -1,12 +1,14 @@
 /** Startseite des Elixier-Trainers: Schwierigkeit wählen und Runde starten. */
 
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ElixirBar } from '../../components/CardTile';
-import { AppSwitch, Button, Card, Row, SectionTitle, Segmented, Stepper } from '../../components/ui';
+import { AppSwitch, Button, Card, ProgressBar, Row, SectionTitle, Segmented, Stepper } from '../../components/ui';
 import { REGEN_SECONDS } from '../../lib/elixir';
+import { progressInfo } from '../../lib/progress';
 import { applyPreset, Preset, PRESETS, SCHEDULE_LABEL, TrainerConfig } from '../../lib/trainerConfig';
 import { useStore } from '../../state/store';
 import { colors, radius } from '../../theme/colors';
@@ -23,6 +25,10 @@ export default function TrainerHome() {
   };
   const custom = (patch: Partial<TrainerConfig>) => updateTrainer({ ...patch, preset: 'custom' });
 
+  // Beim Zurückkehren aktualisieren, damit ein Tageswechsel die Serie richtig bewertet.
+  const [now, setNow] = useState(() => Date.now());
+  useFocusEffect(useCallback(() => setNow(Date.now()), []));
+  const progress = progressInfo(history, now, settings.dailyGoal);
   const best = history.reduce((m, r) => Math.max(m, r.maxScore ? r.score / r.maxScore : 0), 0);
   const recent = history.slice(0, 5);
   const recentAvg = recent.length ? recent.reduce((s, r) => s + r.score / r.maxScore, 0) / recent.length : 0;
@@ -87,6 +93,9 @@ export default function TrainerHome() {
             <Row label="Fragen pro Runde">
               <Stepper value={cfg.questions} min={3} max={25} onChange={(v) => custom({ questions: v })} />
             </Row>
+            <Row label="Lernhilfe" hint="Zeigt die Ausgaben beider Spieler und erklärt den Elixier-Handel">
+              <AppSwitch label="Lernhilfe" value={cfg.coach} onChange={(v) => custom({ coach: v })} />
+            </Row>
             <Row label="Kartenverlauf anzeigen" hint="Aus: Karten erscheinen nur kurz">
               <AppSwitch label="Kartenverlauf" value={cfg.showFeed} onChange={(v) => custom({ showFeed: v })} />
             </Row>
@@ -100,6 +109,33 @@ export default function TrainerHome() {
         )}
 
         <Button label="Training starten" icon="play" variant="primary" onPress={() => router.push('/train')} style={styles.start} />
+
+        <Button label="Übungsmodus: Ein Zug" icon="calculator" onPress={() => router.push('/practice')} />
+
+        <View>
+          <SectionTitle>Serie &amp; Tagesziel</SectionTitle>
+          <Card style={{ gap: 8 }}>
+            <View style={styles.streakRow}>
+              <Text style={styles.streakNum}>
+                {progress.streak > 0 ? '🔥' : '💤'} {progress.streak}
+              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.streakLabel}>{progress.streak === 1 ? 'Tag in Folge' : 'Tage in Folge'}</Text>
+                <Text style={styles.presetHint}>
+                  {progress.atRisk
+                    ? 'Spiel heute eine Runde, damit die Serie bleibt.'
+                    : `Beste Serie: ${progress.bestStreak}`}
+                </Text>
+              </View>
+            </View>
+            <ProgressBar value={progress.goal ? progress.todayRounds / progress.goal : 0} color={progress.goalReached ? colors.good : colors.accent} />
+            <Text style={styles.presetHint}>
+              {progress.goalReached
+                ? `Tagesziel erreicht: ${progress.todayRounds} Runden heute`
+                : `Heute ${progress.todayRounds}/${progress.goal} Runden`}
+            </Text>
+          </Card>
+        </View>
 
         {history.length > 0 && (
           <View>
@@ -166,6 +202,9 @@ const styles = StyleSheet.create({
   presetTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
   presetHint: { color: colors.muted, fontSize: 13, marginTop: 2 },
   start: { paddingVertical: 16 },
+  streakRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  streakNum: { color: colors.text, fontSize: 30, fontWeight: '900' },
+  streakLabel: { color: colors.text, fontSize: 15, fontWeight: '700' },
   stats: { flexDirection: 'row', gap: 10 },
   miniStat: { flex: 1, alignItems: 'center' },
   miniValue: { color: colors.text, fontSize: 20, fontWeight: '900' },
