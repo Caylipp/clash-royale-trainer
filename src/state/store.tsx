@@ -8,6 +8,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 
 import type { MetaDeck } from '../data/metaDecks';
 import { fetchCardIcons, type PlayerProfile } from '../lib/api';
+import { DEFAULT_DAILY_GOAL } from '../lib/progress';
 import { DEFAULT_TRAINER, TrainerConfig } from '../lib/trainerConfig';
 
 export interface Settings {
@@ -16,6 +17,8 @@ export interface Settings {
   proxyUrl: string;
   playerTag: string;
   haptics: boolean;
+  /** Runden pro Tag für die Serie. */
+  dailyGoal: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -23,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   proxyUrl: '',
   playerTag: '',
   haptics: true,
+  dailyGoal: DEFAULT_DAILY_GOAL,
 };
 
 export interface SessionResult {
@@ -60,7 +64,7 @@ interface Store {
 }
 
 const KEY = 'cr.state.v1';
-const MAX_HISTORY = 100;
+const MAX_HISTORY = 1000;
 
 const StoreContext = createContext<Store | null>(null);
 

@@ -28,6 +28,9 @@ Der Elixier-Trainer und das Zufallsdeck laufen komplett offline. Nur für Profil
 - Sonderfälle: **Spiegel** (kostet 1 mehr als die zuletzt gespielte Karte) und **Elixiersammler** (vereinfacht: +1 alle 9 s, 70 s Laufzeit).
 - Bewertung: Richtig ist der abgerundete Wert (so zeigt ihn das Spiel an). Bei ≥ 0,8 Nachkomma zählt auch der nächste Wert. Exakt = 100 P, ±1 = 50 P, ±2 = 15 P. Ab 2 s Reaktionszeit sinken die Punkte bis auf die Hälfte bei 8 s.
 - Du siehst dein eigenes Elixier und deine letzten Karten (simuliert, wie im echten Match). Der Gegner kontert manche deiner Züge, dadurch lässt sich sein Elixier aus deinem Stand ableiten. Mit geladenem Profil wird dein echtes aktuelles Deck verwendet.
+- **Lernhilfe** (Anfänger, in eigenen Einstellungen zuschaltbar): zeigt die Ausgaben beider Spieler und erklärt den „Elixier-Handel“: Gegner ≈ dein Elixier + (deine Ausgaben − seine Ausgaben). Das gilt exakt, solange bei keinem Elixier über 10 verfallen ist.
+- **Serie und Tagesziel**: Tage in Folge mit mindestens einer Runde, Ziel pro Tag einstellbar (Profil).
+- **Übungsmodus „Ein Zug“**: einzelne Aufgaben ohne Zeitdruck (1–2 Karten, auch mit 2×/3× Elixier) mit schrittweisem Rechenweg.
 - Nach jeder Frage wird der Rechenweg gezeigt (letzter Zug, Regeneration, Sammler, Deckelung).
 - Ergebnis mit Rang und Share-Text für TikTok-Challenges.
 
@@ -47,12 +50,12 @@ Der offizielle API-Key (developer.clashroyale.com) ist an feste IPs gebunden und
    ```
 3. Die Worker-URL in der App unter **Profil → Proxy-URL** eintragen und den Spieler-Tag laden.
 
-Endpunkte: `/health`, `/players/:tag`, `/players/:tag/battlelog`, `/meta/decks` (Top-40-Spieler, Battle-Logs aggregiert, 6 h gecacht).
+Endpunkte: `/health`, `/cards` (Icon-URLs), `/players/:tag`, `/players/:tag/battlelog`, `/meta/decks` (Top-40-Spieler, Battle-Logs aggregiert, 6 h gecacht).
 
 ## Struktur
 
 ```
-src/app/            Screens (Expo Router): Tabs Trainer, Zufallsdeck, Deck-Finder, Profil; train.tsx = laufende Runde
+src/app/            Screens (Expo Router): Tabs Trainer, Zufallsdeck, Deck-Finder, Profil; train.tsx = laufende Runde, practice.tsx = Übungsmodus
 src/lib/            Reine Logik mit Tests: elixir, deckGen, deckFinder, api, trainerConfig, rating
 src/data/           Kartendatenbank (IDs der offiziellen API) und kuratierte Meta-Decks
 src/components/     UI-Bausteine, Kartenkacheln (ohne Supercell-Grafiken)
@@ -76,3 +79,7 @@ Die App ist inoffizielles Fan-Material. Kernpunkte der [Policy](https://supercel
 - Pflichthinweis (steht im Profil-Tab): „This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: www.supercell.com/fan-content-policy.“
 - Assets nicht verändern und nicht neu verpacken. Deshalb liegen keine Original-Kartenbilder im Repo oder in der App: Die Icons werden zur Laufzeit über den Proxy von der offiziellen API (`api-assets.clashroyale.com`) geladen und nur angezeigt. Ohne Proxy zeigt die App neutrale Kacheln.
 - Ob ein Trainings-Minispiel noch als „Guide/Tool“ oder schon als „neues Spiel“ gilt, entscheidet Supercell. Vor einer Veröffentlichung im Store schriftlich nachfragen.
+
+## Icon
+
+App-Icon und Splash sind eigene Zeichnungen (Tropfen mit Stoppuhr-Ring), keine Supercell-Grafiken.

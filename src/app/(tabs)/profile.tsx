@@ -5,7 +5,7 @@ import { ActivityIndicator, Alert, Linking, Platform, ScrollView, StyleSheet, Te
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DeckGrid } from '../../components/CardTile';
-import { AppSwitch, Button, Card, ProgressBar, Row, SectionTitle } from '../../components/ui';
+import { AppSwitch, Button, Card, ProgressBar, Row, SectionTitle, Stepper } from '../../components/ui';
 import { fetchPlayer, isValidTag, normalizeTag, pingProxy } from '../../lib/api';
 import { PRESETS } from '../../lib/trainerConfig';
 import { useStore } from '../../state/store';
@@ -165,6 +165,9 @@ export default function ProfileScreen() {
         <View>
           <SectionTitle>Einstellungen</SectionTitle>
           <Card>
+            <Row label="Tagesziel" hint="Runden pro Tag für deine Serie">
+              <Stepper value={settings.dailyGoal} min={1} max={10} onChange={(v) => updateSettings({ dailyGoal: v })} />
+            </Row>
             <Row label="Haptisches Feedback">
               <AppSwitch label="Haptik" value={settings.haptics} onChange={(v) => updateSettings({ haptics: v })} />
             </Row>
