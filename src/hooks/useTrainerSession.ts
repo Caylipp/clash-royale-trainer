@@ -27,8 +27,8 @@ export interface SessionCallbacks {
   onFinish?: (answers: AnswerRecord[]) => void;
 }
 
-export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallbacks = {}) {
-  const [round, setRound] = useState<Round>(() => createRound(config, randomSeed()));
+export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallbacks = {}, profileDeck?: string[]) {
+  const [round, setRound] = useState<Round>(() => createRound(config, randomSeed(), profileDeck));
   const [phase, setPhase] = useState<SessionPhase>('countdown');
   const [countdown, setCountdown] = useState(COUNTDOWN_S);
   const [simTime, setSimTime] = useState(0);
@@ -96,14 +96,14 @@ export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallb
   }, [phase, qIndex, round, answers, callbacks]);
 
   const restart = useCallback(() => {
-    setRound(createRound(config, randomSeed()));
+    setRound(createRound(config, randomSeed(), profileDeck));
     setAnswers([]);
     setQIndex(0);
     simRef.current = 0;
     setSimTime(0);
     setCountdown(COUNTDOWN_S);
     setPhase('countdown');
-  }, [config]);
+  }, [config, profileDeck]);
 
   const plays = useMemo(() => playsUntil(round.sim, simTime), [round, simTime]);
   const collectorUntil = useMemo(() => {
@@ -112,6 +112,9 @@ export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallb
     const last = built[built.length - 1];
     return last ? last.t + COLLECTOR_LIFETIME : 0;
   }, [plays]);
+
+  const ownPlays = useMemo(() => playsUntil(round.own.sim, simTime), [round, simTime]);
+  const ownElixir = elixirAt(round.own.sim, simTime);
 
   const score = answers.reduce((s, a) => s + a.points, 0);
 
@@ -126,6 +129,8 @@ export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallb
     lastAnswer: answers[answers.length - 1],
     score,
     plays,
+    ownPlays,
+    ownElixir,
     collectorUntil,
     answer,
     next,

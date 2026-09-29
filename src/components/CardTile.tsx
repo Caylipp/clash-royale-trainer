@@ -4,9 +4,11 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { card } from '../data/cards';
+import { useStore } from '../state/store';
 import { colors, radius, rarityColors } from '../theme/colors';
 
 const SIZES = {
@@ -50,6 +52,9 @@ export function CardTile({
 }) {
   const c = card(cardKey);
   const s = SIZES[size];
+  const { cardIcons } = useStore();
+  const [failed, setFailed] = useState(false);
+  const iconUrl = failed ? undefined : cardIcons[cardKey];
   const tint = rarityColors[c.rarity];
   const body = (
     <View
@@ -60,9 +65,19 @@ export function CardTile({
       ]}
     >
       <View style={[styles.stripe, { backgroundColor: tint }]} />
-      <Text style={[styles.name, { fontSize: s.name }]} numberOfLines={3} adjustsFontSizeToFit>
-        {shortName(c.name)}
-      </Text>
+      {iconUrl ? (
+        <Image
+          source={{ uri: iconUrl }}
+          style={styles.icon}
+          resizeMode="contain"
+          accessibilityLabel={c.name}
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <Text style={[styles.name, { fontSize: s.name }]} numberOfLines={3} adjustsFontSizeToFit>
+          {shortName(c.name)}
+        </Text>
+      )}
       {level !== undefined && level > 0 && (
         <Text style={[styles.level, { fontSize: s.name - 1 }]}>Lvl {level}</Text>
       )}
@@ -153,6 +168,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     overflow: 'hidden',
   },
+  icon: { position: 'absolute', top: 4, left: 0, right: 0, bottom: 0 },
   stripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 4 },
   name: { color: colors.text, fontWeight: '800', textAlign: 'center' },
   level: { color: colors.muted, fontWeight: '700', marginTop: 2 },

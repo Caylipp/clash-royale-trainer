@@ -92,6 +92,11 @@ export interface SimOptions {
   seed: number;
   /** 0 = geduldig (spielt oft erst bei vollem Elixier), 1 = sehr aggressiv. */
   aggression?: number;
+  /**
+   * Zeitpunkte, zu denen der andere Spieler Karten legt. Der Simulierte kontert
+   * manche davon nach 0,6–2 s, so hängen beide Elixierstände zusammen wie im echten Match.
+   */
+  reactTo?: number[];
 }
 
 export interface Simulation {
@@ -157,6 +162,11 @@ export function simulateOpponent(opts: SimOptions): Simulation {
     }
     const wait = Math.max(0, timeToGain(schedule, t, target - elixir));
     let tPlay = t + wait + delay;
+    const trigger = opts.reactTo?.find((x) => x > t);
+    if (trigger !== undefined && trigger < tPlay + 4 && rng() < 0.45) {
+      const affordable = t + timeToGain(schedule, t, Math.max(0, cost - elixir)) + 0.05;
+      tPlay = Math.max(trigger + between(rng, 0.6, 2), affordable);
+    }
     if (tPlay > duration) break;
     advance(tPlay);
     if (elixir < cost) {

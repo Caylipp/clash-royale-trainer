@@ -27,6 +27,7 @@ Der Elixier-Trainer und das Zufallsdeck laufen komplett offline. Nur für Profil
 - Der Gegner spielt ein Meta-Deck mit echter Kartenrotation (4 Handkarten). Er reagiert mal sofort, mal wartet er und lässt gelegentlich Elixier verfallen.
 - Sonderfälle: **Spiegel** (kostet 1 mehr als die zuletzt gespielte Karte) und **Elixiersammler** (vereinfacht: +1 alle 9 s, 70 s Laufzeit).
 - Bewertung: Richtig ist der abgerundete Wert (so zeigt ihn das Spiel an). Bei ≥ 0,8 Nachkomma zählt auch der nächste Wert. Exakt = 100 P, ±1 = 50 P, ±2 = 15 P. Ab 2 s Reaktionszeit sinken die Punkte bis auf die Hälfte bei 8 s.
+- Du siehst dein eigenes Elixier und deine letzten Karten (simuliert, wie im echten Match). Der Gegner kontert manche deiner Züge, dadurch lässt sich sein Elixier aus deinem Stand ableiten. Mit geladenem Profil wird dein echtes aktuelles Deck verwendet.
 - Nach jeder Frage wird der Rechenweg gezeigt (letzter Zug, Regeneration, Sammler, Deckelung).
 - Ergebnis mit Rang und Share-Text für TikTok-Challenges.
 
@@ -60,12 +61,18 @@ worker/             Cloudflare Worker als API-Proxy
 
 ## Bekannte Vereinfachungen
 
-- Kartenkacheln statt Original-Artwork (offline, keine Asset-Rechte nötig).
+- Ohne Proxy: Kartenkacheln statt Original-Artwork.
 - Neuere Karten ohne gesicherte API-ID haben keinen Deck-Link. Die Zuordnung aus der API läuft dann über den Namen.
 - Die Stärke der kuratierten Decks ist geschätzt. Live-Decks bewerten Winrate und Nutzung der Top-Spieler.
 - Elixiersammler-Werte und Elixier-Golem-Effekte sind vereinfacht bzw. nicht modelliert.
 - Noch offen: echte Battle-Logs nachspielen (die API liefert keine Zeitstempel pro Karte).
 
-## Rechtliches
+## Rechtliches (Supercell Fan Content Policy)
 
-Diese App ist kein offizielles Produkt von Supercell. Sie folgt der [Fan Content Policy](https://www.supercell.com/fan-content-policy): kostenlos nutzbar, Disclaimer in der App.
+Die App ist inoffizielles Fan-Material. Kernpunkte der [Policy](https://supercell.com/en/fan-content-policy/):
+
+- Kein Geld verlangen (keine Käufe, keine Abos, keine Bezahl-Features). Erlaubt sind nur Werbung, Spenden und Coaching.
+- Keine Supercell-Marken in Namen, Domains oder Social-Media-Konten (z. B. „Clash Royale“ im App-Namen) ohne schriftliche Zustimmung. Die App heißt deshalb „Elixier-Trainer“.
+- Pflichthinweis (steht im Profil-Tab): „This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: www.supercell.com/fan-content-policy.“
+- Assets nicht verändern und nicht neu verpacken. Deshalb liegen keine Original-Kartenbilder im Repo oder in der App: Die Icons werden zur Laufzeit über den Proxy von der offiziellen API (`api-assets.clashroyale.com`) geladen und nur angezeigt. Ohne Proxy zeigt die App neutrale Kacheln.
+- Ob ein Trainings-Minispiel noch als „Guide/Tool“ oder schon als „neues Spiel“ gilt, entscheidet Supercell. Vor einer Veröffentlichung im Store schriftlich nachfragen.

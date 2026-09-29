@@ -130,6 +130,22 @@ export async function fetchMeta(proxyUrl: string): Promise<{ decks: MetaDeck[]; 
   return { decks: remoteToMetaDecks(raw), raw };
 }
 
+interface RawCards {
+  items?: { id?: number; name: string; iconUrls?: { medium?: string } }[];
+}
+
+/** Offizielle Icon-URLs pro Karten-Key. Die Bilder werden nur angezeigt, nie gespeichert oder weitergegeben. */
+export async function fetchCardIcons(proxyUrl: string): Promise<Record<string, string>> {
+  const raw = await getJson<RawCards>(joinUrl(proxyUrl, '/cards'));
+  const out: Record<string, string> = {};
+  for (const c of raw.items ?? []) {
+    const url = c.iconUrls?.medium;
+    const known = findCard({ id: c.id, name: c.name });
+    if (known && url && /^https:\/\/api-assets\.clashroyale\.com\//.test(url)) out[known.key] = url;
+  }
+  return out;
+}
+
 export async function pingProxy(proxyUrl: string): Promise<boolean> {
   try {
     const res = await fetch(joinUrl(proxyUrl, '/health'));
