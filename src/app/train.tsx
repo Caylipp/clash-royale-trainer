@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { Animated, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CardTile, ElixirBar } from '../components/CardTile';
+import { CardTile, ElixirBar, ElixirDrop } from '../components/CardTile';
 import { Button, Card } from '../components/ui';
 import { card } from '../data/cards';
 import { AnswerRecord, useTrainerSession } from '../hooks/useTrainerSession';
@@ -32,7 +32,7 @@ function playLabel(p: Play): string {
 
 export default function TrainScreen() {
   useKeepAwake();
-  const { settings, addResult } = useStore();
+  const { settings, addResult, player } = useStore();
   const config = settings.trainer;
   const presetLabel = config.preset === 'custom' ? 'Eigene Einstellungen' : PRESETS[config.preset].label;
   const s = useTrainerSession(config, {
@@ -50,7 +50,7 @@ export default function TrainScreen() {
         avgReactionMs: n ? answers.reduce((x, a) => x + a.reactionMs, 0) / n : 0,
       });
     },
-  });
+  }, player?.currentDeck);
 
   if (s.phase === 'done') {
     return (
@@ -128,6 +128,10 @@ export default function TrainScreen() {
       )}
       {!config.showFeed && <View style={{ flex: 1 }} />}
 
+      {s.phase !== 'countdown' && (
+        <OwnPanel elixir={s.ownElixir} plays={s.ownPlays} deckName={s.round.own.deckName} />
+      )}
+
       <View style={styles.bottom}>
         {s.phase === 'question' && <Question onAnswer={s.answer} />}
         {s.phase === 'reveal' && s.lastAnswer && (
@@ -138,6 +142,29 @@ export default function TrainScreen() {
         )}
       </View>
     </SafeAreaView>
+  );
+}
+
+/** Dein eigenes Elixier und deine letzten Karten: im echten Match immer sichtbar. */
+function OwnPanel({ elixir, plays, deckName }: { elixir: number; plays: Play[]; deckName: string }) {
+  const recent = plays.slice(-4);
+  return (
+    <View style={styles.own}>
+      <View style={styles.ownHead}>
+        <Text style={styles.ownTitle}>Du · {deckName}</Text>
+        <View style={styles.ownValue}>
+          <ElixirDrop value={Math.floor(elixir)} size={24} fontSize={14} />
+        </View>
+      </View>
+      <ElixirBar value={elixir} height={12} />
+      <View style={styles.ownCards}>
+        {recent.length === 0 ? (
+          <Text style={styles.ownEmpty}>Du hast noch keine Karte gelegt.</Text>
+        ) : (
+          recent.map((p) => <CardTile key={p.t} cardKey={p.card} size="sm" />)
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -303,7 +330,7 @@ const styles = StyleSheet.create({
   speed: { color: colors.muted, fontSize: 12 },
   arena: {
     margin: 16,
-    height: 240,
+    height: 200,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -329,6 +356,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   collectorText: { color: colors.elixir, fontSize: 12, fontWeight: '700' },
+  own: { paddingHorizontal: 16, paddingVertical: 8, gap: 6 },
+  ownHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  ownTitle: { color: colors.muted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  ownValue: { flexDirection: 'row', alignItems: 'center' },
+  ownCards: { flexDirection: 'row', gap: 6, minHeight: 72, alignItems: 'center' },
+  ownEmpty: { color: colors.faint, fontSize: 13 },
   feed: { flex: 1, paddingHorizontal: 16 },
   feedRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   feedTime: { color: colors.muted, width: 40, fontVariant: ['tabular-nums'] },

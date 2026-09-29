@@ -9,6 +9,7 @@
  *   GET /health
  *   GET /players/:tag
  *   GET /players/:tag/battlelog
+ *   GET /cards          Kartenliste mit offiziellen Icon-URLs (24 h gecacht)
  *   GET /meta/decks     Top-Decks aus den Battle-Logs der Top-Spieler (6 h gecacht)
  */
 
@@ -21,6 +22,7 @@ export interface Env {
 const DEFAULT_UPSTREAM = 'https://proxy.royaleapi.dev/v1';
 const PLAYER_TTL = 60;
 const META_TTL = 6 * 60 * 60;
+const CARDS_TTL = 24 * 60 * 60;
 const TOP_PLAYERS = 40;
 
 interface BattleCard {
@@ -123,6 +125,11 @@ export default {
         const suffix = parts[2] === 'battlelog' ? '/battlelog' : '';
         const { status, body } = await upstream(env, `/players/${tagPath(parts[1])}${suffix}`);
         return json(body, env, status, status === 200 ? PLAYER_TTL : 0);
+      }
+
+      if (parts[0] === 'cards' && !parts[1]) {
+        const { status, body } = await upstream(env, '/cards');
+        return json(body, env, status, status === 200 ? CARDS_TTL : 0);
       }
 
       if (parts[0] === 'meta' && parts[1] === 'decks') {

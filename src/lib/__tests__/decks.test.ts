@@ -4,6 +4,7 @@ import { normalizeTag, isValidTag, parsePlayer, remoteToMetaDecks } from '../api
 import { collectionFromApi, findBestDecks, matchDeck, normalizeLevel } from '../deckFinder';
 import { averageElixir, checkDeck, cycleCost, deckLink, DEFAULT_RULES, generateDeck, isPlayable } from '../deckGen';
 import { createRng } from '../random';
+import { SCHEDULES, simulateOpponent } from '../elixir';
 import { createRound, opponentDeck, applyPreset } from '../trainerConfig';
 
 describe('card data', () => {
@@ -149,5 +150,37 @@ describe('trainer rounds', () => {
   it('creates enough checkpoints for the configured questions', () => {
     const round = createRound(applyPreset('normal'), 99);
     expect(round.checkpoints).toHaveLength(10);
+  });
+});
+
+describe('own player simulation', () => {
+  it('creates a distinct own deck and elixir curve', () => {
+    for (let seed = 1; seed < 30; seed++) {
+      const round = createRound(applyPreset('normal'), seed);
+      expect(round.own.deck).toHaveLength(8);
+      expect(new Set(round.own.deck).size).toBe(8);
+      expect(round.own.sim.events.some((e) => e.kind === 'play')).toBe(true);
+    }
+  });
+
+  it('uses the profile deck when given', () => {
+    const deck = META_DECKS[0].cards;
+    expect(createRound(applyPreset('normal'), 5, deck).own.deck).toEqual(deck);
+  });
+
+  it('lets the opponent counter own plays more often than chance', () => {
+    const deck = META_DECKS[1].cards;
+    const reactTo = [10, 30, 50, 70, 90, 110];
+    let near = 0;
+    let nearBase = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      const withReact = simulateOpponent({ deck, schedule: SCHEDULES.single, duration: 130, seed, reactTo });
+      const base = simulateOpponent({ deck, schedule: SCHEDULES.single, duration: 130, seed });
+      const count = (sim: typeof base) =>
+        sim.events.filter((e) => e.kind === 'play' && reactTo.some((r) => e.t > r + 0.5 && e.t < r + 2.5)).length;
+      near += count(withReact);
+      nearBase += count(base);
+    }
+    expect(near).toBeGreaterThan(nearBase * 1.3);
   });
 });

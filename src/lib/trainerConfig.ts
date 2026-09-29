@@ -98,18 +98,37 @@ export interface Round {
   deckName: string;
   deck: string[];
   sim: Simulation;
+  /** Eigene Karten und Elixier: im echten Spiel sichtbar, Grundlage fürs Schätzen. */
+  own: { deckName: string; deck: string[]; sim: Simulation };
   checkpoints: number[];
 }
 
-export function createRound(config: TrainerConfig, seed: number): Round {
+/** Eigenes Deck: das echte aktuelle Deck aus dem Profil, sonst ein anderes Meta-Deck. */
+export function ownDeck(seed: number, opponentName: string, profileDeck?: string[]): { name: string; cards: string[] } {
+  if (profileDeck?.length === 8) return { name: 'Dein Deck', cards: profileDeck };
+  const rng = createRng(seed ^ 0x51ed270b);
+  const deck = pick(rng, META_DECKS.filter((d) => d.name !== opponentName));
+  const cards = deck.cards.filter((k) => k !== 'mirror' && k !== 'elixir-collector');
+  for (const filler of ['knight', 'zap', 'skeletons', 'archers']) if (cards.length < 8 && !cards.includes(filler)) cards.push(filler);
+  return { name: deck.name, cards };
+}
+
+export function createRound(config: TrainerConfig, seed: number, profileDeck?: string[]): Round {
   const { name, cards } = opponentDeck(config, seed);
+  const mine = ownDeck(seed, name, profileDeck);
   const duration = config.questions * 16 + 30;
-  const sim = simulateOpponent({
-    deck: cards,
-    schedule: SCHEDULES[config.schedule],
-    duration,
+  const schedule = SCHEDULES[config.schedule];
+  const aggression = config.preset === 'pro' ? 0.7 : 0.5;
+  // Erst du, dann kontert der Gegner auf deine Züge.
+  const ownSim = simulateOpponent({ deck: mine.cards, schedule, duration, seed: seed ^ 0x7f4a7c15, aggression: 0.55 });
+  const reactTo = ownSim.events.flatMap((e) => (e.kind === 'play' ? [e.t] : []));
+  const sim = simulateOpponent({ deck: cards, schedule, duration, seed, aggression, reactTo });
+  return {
     seed,
-    aggression: config.preset === 'pro' ? 0.7 : 0.5,
-  });
-  return { seed, deckName: name, deck: cards, sim, checkpoints: checkpoints(sim, config.questions, seed) };
+    deckName: name,
+    deck: cards,
+    sim,
+    own: { deckName: mine.name, deck: mine.cards, sim: ownSim },
+    checkpoints: checkpoints(sim, config.questions, seed),
+  };
 }

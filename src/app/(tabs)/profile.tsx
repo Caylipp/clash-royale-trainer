@@ -172,9 +172,8 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={styles.disclaimer}>
-          Diese App ist kein offizielles Produkt von Supercell. This content is not affiliated with, endorsed, sponsored,
-          or specifically approved by Supercell and Supercell is not responsible for it. For more information see
-          Supercell&apos;s Fan Content Policy:{' '}
+          This material is unofficial and is not endorsed by Supercell. For more information see Supercell&apos;s Fan
+          Content Policy:{' '}
           <Text style={styles.link} onPress={() => Linking.openURL('https://www.supercell.com/fan-content-policy')}>
             www.supercell.com/fan-content-policy
           </Text>

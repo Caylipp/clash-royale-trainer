@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import type { MetaDeck } from '../data/metaDecks';
-import type { PlayerProfile } from '../lib/api';
+import { fetchCardIcons, type PlayerProfile } from '../lib/api';
 import { DEFAULT_TRAINER, TrainerConfig } from '../lib/trainerConfig';
 
 export interface Settings {
@@ -55,6 +55,8 @@ interface Store {
   setPlayer: (p: PlayerProfile | null) => void;
   liveMeta: LiveMeta | null;
   setLiveMeta: (m: LiveMeta | null) => void;
+  /** Offizielle Kartenbilder (nur URLs), leer = Kacheln ohne Bild. */
+  cardIcons: Record<string, string>;
 }
 
 const KEY = 'cr.state.v1';
@@ -68,6 +70,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<SessionResult[]>([]);
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [liveMeta, setLiveMeta] = useState<LiveMeta | null>(null);
+  const [cardIcons, setCardIcons] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
@@ -83,6 +86,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           setHistory(Array.isArray(s.history) ? s.history : []);
           setPlayer(s.player ?? null);
           setLiveMeta(s.liveMeta ?? null);
+          setCardIcons(s.cardIcons ?? {});
         }
       } catch (e) {
         console.warn('Gespeicherter Zustand konnte nicht geladen werden', e);
@@ -94,8 +98,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loaded) return;
-    AsyncStorage.setItem(KEY, JSON.stringify({ settings, history, player, liveMeta })).catch(() => {});
-  }, [loaded, settings, history, player, liveMeta]);
+    AsyncStorage.setItem(KEY, JSON.stringify({ settings, history, player, liveMeta, cardIcons })).catch(() => {});
+  }, [loaded, settings, history, player, liveMeta, cardIcons]);
+
+  // Icons einmal über den Proxy holen, sobald er konfiguriert ist.
+  const proxyUrl = settings.proxyUrl;
+  const hasIcons = Object.keys(cardIcons).length > 0;
+  useEffect(() => {
+    if (!loaded || !proxyUrl || hasIcons) return;
+    fetchCardIcons(proxyUrl).then(setCardIcons).catch(() => {});
+  }, [loaded, proxyUrl, hasIcons]);
 
   const updateSettings = useCallback((patch: Partial<Settings>) => {
     setSettings((prev) => ({ ...prev, ...patch }));
@@ -124,8 +136,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setPlayer,
       liveMeta,
       setLiveMeta,
+      cardIcons,
     }),
-    [loaded, settings, updateSettings, updateTrainer, history, addResult, clearHistory, player, liveMeta],
+    [loaded, settings, updateSettings, updateTrainer, history, addResult, clearHistory, player, liveMeta, cardIcons],
   );
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
