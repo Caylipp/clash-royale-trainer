@@ -13,10 +13,12 @@ Konzept und Bewertung: [concept.md](concept.md)
 ```bash
 npm install
 npx expo start        # QR-Code mit Expo Go scannen, oder w für Web
-npm test              # Unit-Tests der Logik (Simulation, Decks, API-Parsing)
-npm run typecheck
-npm run lint
+npm run check         # Typecheck, Lint und Unit-Tests
+npm run e2e           # Web-Export + automatischer Durchlauf in Chrome (Runde, Übungsmodus, alle Tabs)
+npm run ios:ipa       # unsignierte IPA → dist/ElixierTrainer.ipa (für LiveContainer/SideStore)
 ```
+
+Die `.npmrc` setzt `legacy-peer-deps`: Die optionalen Peer-Abhängigkeiten der Expo-Pakete (`react-native-worklets`) widersprechen sich, sonst legt npm `expo-modules-core` so ab, dass Jest es nicht findet. Deshalb steht `@react-native/jest-preset` ausdrücklich in den devDependencies.
 
 Der Elixier-Trainer und das Zufallsdeck laufen komplett offline. Nur für Profil und Live-Meta braucht die App den Proxy.
 
@@ -50,7 +52,7 @@ Der offizielle API-Key (developer.clashroyale.com) ist an feste IPs gebunden und
    ```
 3. Die Worker-URL in der App unter **Profil → Proxy-URL** eintragen und den Spieler-Tag laden.
 
-Endpunkte: `/health`, `/cards` (Icon-URLs), `/players/:tag`, `/players/:tag/battlelog`, `/meta/decks` (Top-40-Spieler, Battle-Logs aggregiert, 6 h gecacht).
+Endpunkte: `/health`, `/cards` (Icon-URLs), `/players/:tag`, `/players/:tag/battlelog`, `/meta/decks` (Top-30-Spieler, Battle-Logs aggregiert, 6 h gecacht).
 
 ## Struktur
 
@@ -83,3 +85,7 @@ Die App ist inoffizielles Fan-Material. Kernpunkte der [Policy](https://supercel
 ## Icon
 
 App-Icon und Splash sind eigene Zeichnungen (Tropfen mit Stoppuhr-Ring), keine Supercell-Grafiken.
+
+## Offene Punkte
+
+Was noch den Besitzer braucht (API-Key, Supercell, Apple, Gerätetest): [docs/OFFEN.md](docs/OFFEN.md)

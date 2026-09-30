@@ -23,7 +23,7 @@ const DEFAULT_UPSTREAM = 'https://proxy.royaleapi.dev/v1';
 const PLAYER_TTL = 60;
 const META_TTL = 6 * 60 * 60;
 const CARDS_TTL = 24 * 60 * 60;
-const TOP_PLAYERS = 40;
+const TOP_PLAYERS = 30; // bleibt unter dem Limit von 50 Unteranfragen pro Aufruf
 
 interface BattleCard {
   id: number;

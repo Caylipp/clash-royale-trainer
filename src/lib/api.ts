@@ -41,8 +41,23 @@ function joinUrl(base: string, path: string): string {
   return `${base.replace(/\/+$/, '')}${path}`;
 }
 
+const TIMEOUT_MS = 20_000;
+
+async function fetchWithTimeout(url: string): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    return await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
+  } catch {
+    if (controller.signal.aborted) throw new Error('Zeitüberschreitung: Der Proxy antwortet nicht.');
+    throw new Error('Keine Verbindung zum Proxy. Stimmt die URL, und hast du Internet?');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  const res = await fetchWithTimeout(url);
   if (!res.ok) {
     let reason = '';
     try {
@@ -148,7 +163,7 @@ export async function fetchCardIcons(proxyUrl: string): Promise<Record<string, s
 
 export async function pingProxy(proxyUrl: string): Promise<boolean> {
   try {
-    const res = await fetch(joinUrl(proxyUrl, '/health'));
+    const res = await fetchWithTimeout(joinUrl(proxyUrl, '/health'));
     return res.ok;
   } catch {
     return false;
