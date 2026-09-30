@@ -64,6 +64,10 @@ src/components/     UI-Bausteine, Kartenkacheln (ohne Supercell-Grafiken)
 worker/             Cloudflare Worker als API-Proxy
 ```
 
+## iOS 27: Absturz beim Start
+
+iOS 27 beendet Apps, die mit dem 27er-SDK gebaut sind und noch keinen UIScene-Lebenszyklus haben (Expo/React Native bieten ihn noch nicht). `scripts/build-ipa.sh` setzt deshalb per `vtool` die SDK-Version im Binary auf 26. Im iOS-27-Simulator geprüft: ohne Patch Absturz, mit Patch läuft die App. Den Schritt entfernen, sobald Expo/React Native den Scene-Lebenszyklus unterstützen.
+
 ## Bekannte Vereinfachungen
 
 - Ohne Proxy: Kartenkacheln statt Original-Artwork.
