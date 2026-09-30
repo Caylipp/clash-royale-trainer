@@ -20,6 +20,8 @@ export interface AnswerRecord extends Grade {
 }
 
 const TICK_MS = 50;
+/** Mehr echte Zeit pro Tick zählt nicht: Nach Hintergrund oder Ruckler springt die Runde nicht vor. */
+const MAX_TICK_S = 0.25;
 const COUNTDOWN_S = 3;
 
 export interface SessionCallbacks {
@@ -37,16 +39,22 @@ export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallb
   const questionStart = useRef(0);
   const lastTick = useRef(0);
   const simRef = useRef(0);
+  // Synchron geführt, damit ein Doppeltipp nicht zweimal eine Antwort oder das Ende auslöst.
+  const phaseRef = useRef<SessionPhase>('countdown');
+  const go = useCallback((p: SessionPhase) => {
+    phaseRef.current = p;
+    setPhase(p);
+  }, []);
 
   // Countdown vor dem Start.
   useEffect(() => {
     if (phase !== 'countdown') return;
     const id = setTimeout(() => {
-      if (countdown <= 1) setPhase('running');
+      if (countdown <= 1) go('running');
       else setCountdown(countdown - 1);
     }, 1000);
     return () => clearTimeout(id);
-  }, [phase, countdown]);
+  }, [phase, countdown, go]);
 
   // Spielzeit fortschreiben und an Abfragepunkten anhalten.
   useEffect(() => {
@@ -55,24 +63,25 @@ export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallb
     const target = round.checkpoints[qIndex];
     const id = setInterval(() => {
       const now = Date.now();
-      const dt = ((now - lastTick.current) / 1000) * config.speed;
+      const dt = Math.min((now - lastTick.current) / 1000, MAX_TICK_S) * config.speed;
       lastTick.current = now;
       const next = simRef.current + dt;
       if (target !== undefined && next >= target) {
         simRef.current = target;
         questionStart.current = now;
-        setPhase('question');
+        go('question');
       } else {
         simRef.current = next;
       }
       setSimTime(simRef.current);
     }, TICK_MS);
     return () => clearInterval(id);
-  }, [phase, qIndex, round, config.speed]);
+  }, [phase, qIndex, round, config.speed, go]);
 
   const answer = useCallback(
     (value: number) => {
-      if (phase !== 'question') return;
+      if (phaseRef.current !== 'question') return;
+      phaseRef.current = 'reveal';
       const t = round.checkpoints[qIndex];
       const actual = elixirAt(round.sim, t);
       const reactionMs = Date.now() - questionStart.current;
@@ -81,19 +90,19 @@ export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallb
       setPhase('reveal');
       callbacks.onAnswer?.(record);
     },
-    [phase, qIndex, round, callbacks],
+    [qIndex, round, callbacks],
   );
 
   const next = useCallback(() => {
-    if (phase !== 'reveal') return;
+    if (phaseRef.current !== 'reveal') return;
     if (qIndex + 1 >= round.checkpoints.length) {
-      setPhase('done');
+      go('done');
       callbacks.onFinish?.(answers);
     } else {
       setQIndex((i) => i + 1);
-      setPhase('running');
+      go('running');
     }
-  }, [phase, qIndex, round, answers, callbacks]);
+  }, [qIndex, round, answers, callbacks, go]);
 
   const restart = useCallback(() => {
     setRound(createRound(config, randomSeed(), profileDeck));
@@ -102,8 +111,8 @@ export function useTrainerSession(config: TrainerConfig, callbacks: SessionCallb
     simRef.current = 0;
     setSimTime(0);
     setCountdown(COUNTDOWN_S);
-    setPhase('countdown');
-  }, [config, profileDeck]);
+    go('countdown');
+  }, [config, profileDeck, go]);
 
   const plays = useMemo(() => playsUntil(round.sim, simTime), [round, simTime]);
   const collectorUntil = useMemo(() => {
