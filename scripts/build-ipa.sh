@@ -23,6 +23,12 @@ xcodebuild \
 APP="ios/build/Build/Products/Release-iphoneos/$SCHEME.app"
 [ -d "$APP" ] || { echo "Build fehlgeschlagen: $APP fehlt" >&2; exit 1; }
 
+# iOS 27 beendet Apps, die mit dem 27er-SDK gebaut sind, aber noch kein UIScene-Lifecycle haben (Crash beim Start,
+# "NoSceneLifecycleAdoption"; Expo/React Native bieten das noch nicht). Umgehung: SDK-Version im Binary auf 26 setzen.
+# Entfernen, sobald React Native/Expo den Scene-Lifecycle unterstützen.
+vtool -set-build-version 2 16.4 26.0 -replace -output ios/build/patched.bin "$APP/$SCHEME"
+cp ios/build/patched.bin "$APP/$SCHEME"
+
 rm -rf dist/ipa && mkdir -p dist/ipa/Payload
 cp -R "$APP" dist/ipa/Payload/
 (cd dist/ipa && zip -qry ../ElixierTrainer.ipa Payload)
