@@ -12,6 +12,8 @@ A mobile training app for Clash Royale players (Expo / React Native, TypeScript)
 
 - **Deterministic simulation**: each round is precomputed from a seed ([src/lib/elixir.ts](src/lib/elixir.ts)): elixir regeneration (1 per 2.8 s, 2×/3× in overtime), 4-card hand rotation, opponent behavior (reacts immediately, waits, or occasionally wastes elixir), special cards like Mirror and Elixir Collector. This makes rounds reproducible and testable.
 - **Teaching mode**: explains elixir trading (opponent ≈ your elixir + your spending − their spending) and shows the calculation after every question.
+- **Card cycle drill**: the opponent has 8 cards (4 in hand, 1 preview); a played card goes to the back of the queue. Three gentle levels (name the next card, name the 4 cards in hand, order visible only at the start), no time pressure, step-by-step explanation afterwards ([src/lib/cycle.ts](src/lib/cycle.ts), seed-deterministic).
+- **Statistics and history**: 14-day bar chart, key figures, per-level breakdown and a forgiving trend from 6 rounds on ([src/lib/stats.ts](src/lib/stats.ts)).
 - **API proxy**: the official API key is bound to fixed IPs and must not ship in the app. A Cloudflare Worker ([worker/](worker/)) forwards requests, aggregates top-player battle logs into live meta decks and caches them for 6 hours.
 - **Quality**: TypeScript, ESLint, Jest unit tests and an end-to-end run in Chrome (`npm run e2e`).
 

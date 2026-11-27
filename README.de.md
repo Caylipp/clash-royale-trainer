@@ -33,6 +33,8 @@ Der Elixier-Trainer und das Zufallsdeck laufen komplett offline. Nur für Profil
 - **Lernhilfe** (Anfänger, in eigenen Einstellungen zuschaltbar): zeigt die Ausgaben beider Spieler und erklärt den „Elixier-Handel“: Gegner ≈ dein Elixier + (deine Ausgaben − seine Ausgaben). Das gilt exakt, solange bei keinem Elixier über 10 verfallen ist.
 - **Serie und Tagesziel**: Tage in Folge mit mindestens einer Runde, Ziel pro Tag einstellbar (Profil).
 - **Übungsmodus „Ein Zug“**: einzelne Aufgaben ohne Zeitdruck (1–2 Karten, auch mit 2×/3× Elixier) mit schrittweisem Rechenweg.
+- **Übung „Karten-Zyklus“**: Der Gegner hat 8 Karten (4 auf der Hand, 1 Vorschau). Er spielt Karten, die gespielte hängt hinten an. Stufe 1: nächste Karte nennen, Stufe 2: die 4 Handkarten nennen, Stufe 3: Reihenfolge nur zu Beginn sichtbar. Ohne Zeitdruck, danach Schritt-für-Schritt-Ablauf ([src/lib/cycle.ts](src/lib/cycle.ts), Seed-deterministisch).
+- **Statistik und Verlauf**: Säulen der letzten 14 Tage, Kennzahlen (Ø Punkte, exakt gezählt, Abweichung, Reaktion), Auswertung nach Stufe und ein nachsichtiger Trend ab 6 Runden ([src/lib/stats.ts](src/lib/stats.ts)). Erreichbar über „Dein Stand“ auf der Trainer-Seite.
 - Nach jeder Frage wird der Rechenweg gezeigt (letzter Zug, Regeneration, Sammler, Deckelung).
 - Ergebnis mit Rang und Share-Text für TikTok-Challenges.
 
@@ -57,8 +59,8 @@ Endpunkte: `/health`, `/cards` (Icon-URLs), `/players/:tag`, `/players/:tag/batt
 ## Struktur
 
 ```
-src/app/            Screens (Expo Router): Tabs Trainer, Zufallsdeck, Deck-Finder, Profil; train.tsx = laufende Runde, practice.tsx = Übungsmodus
-src/lib/            Reine Logik mit Tests: elixir, deckGen, deckFinder, api, trainerConfig, rating
+src/app/            Screens (Expo Router): Tabs Trainer, Zufallsdeck, Deck-Finder, Profil; train.tsx = laufende Runde, practice.tsx = Übungsmodus, cycle.tsx = Karten-Zyklus, stats.tsx = Statistik
+src/lib/            Reine Logik mit Tests: elixir, cycle, stats, deckGen, deckFinder, api, trainerConfig, rating
 src/data/           Kartendatenbank (IDs der offiziellen API) und kuratierte Meta-Decks
 src/components/     UI-Bausteine, Kartenkacheln (ohne Supercell-Grafiken)
 worker/             Cloudflare Worker als API-Proxy

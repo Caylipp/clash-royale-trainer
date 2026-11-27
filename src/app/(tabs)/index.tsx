@@ -112,6 +112,8 @@ export default function TrainerHome() {
 
         <Button label="Übungsmodus: Ein Zug" icon="calculator" onPress={() => router.push('/practice')} />
 
+        <Button label="Übung: Karten-Zyklus" icon="albums-outline" onPress={() => router.push('/cycle')} />
+
         <View>
           <SectionTitle>Serie &amp; Tagesziel</SectionTitle>
           <Card style={{ gap: 8 }}>
@@ -145,6 +147,7 @@ export default function TrainerHome() {
               <MiniStat label="Bestwert" value={`${Math.round(best * 100)} %`} />
               <MiniStat label="Ø letzte 5" value={`${Math.round(recentAvg * 100)} %`} />
             </View>
+            <Button label="Statistik und Verlauf" icon="stats-chart-outline" onPress={() => router.push('/stats')} style={{ marginTop: 10 }} />
           </View>
         )}
       </ScrollView>
