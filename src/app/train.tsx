@@ -314,7 +314,7 @@ function Results({
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.results}>
-        <Text style={styles.rankEmoji}>{rank.emoji}</Text>
+        <Ionicons name={rank.icon as keyof typeof Ionicons.glyphMap} size={56} color={colors.accent} style={styles.rankIcon} />
         <Text style={styles.rankTitle}>{rank.title}</Text>
         <Text style={styles.resultScore}>
           {score} <Text style={styles.resultMax}>/ {max}</Text>
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   coachTitle: { color: colors.accent, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
   explain: { color: colors.muted, fontSize: 13, lineHeight: 18 },
   results: { padding: 20, alignItems: 'center', gap: 14 },
-  rankEmoji: { fontSize: 56, marginTop: 20 },
+  rankIcon: { marginTop: 20 },
   rankTitle: { color: colors.accent, fontSize: 24, fontWeight: '900' },
   resultScore: { color: colors.text, fontSize: 44, fontWeight: '900' },
   resultMax: { color: colors.muted, fontSize: 24 },

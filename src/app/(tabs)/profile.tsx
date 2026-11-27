@@ -1,5 +1,6 @@
 /** Profil: Spieler-Tag, API-Proxy, Trainingsverlauf, Einstellungen und Disclaimer. */
 
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,7 +109,8 @@ export default function ProfileScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.playerName}>{player.name}</Text>
                 <Text style={styles.muted}>
-                  {player.tag} · Level {player.expLevel} · 🏆 {player.trophies}
+                  {player.tag} · Level {player.expLevel} ·{' '}
+                  <Ionicons name="trophy-outline" size={13} color={colors.muted} /> {player.trophies}
                 </Text>
               </View>
               <Button icon="log-out-outline" variant="ghost" onPress={() => setPlayer(null)} accessibilityLabel="Profil entfernen" />

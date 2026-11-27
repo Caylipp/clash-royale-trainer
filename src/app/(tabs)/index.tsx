@@ -2,6 +2,7 @@
 
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -119,7 +120,7 @@ export default function TrainerHome() {
           <Card style={{ gap: 8 }}>
             <View style={styles.streakRow}>
               <Text style={styles.streakNum}>
-                {progress.streak > 0 ? '🔥' : '💤'} {progress.streak}
+                <Ionicons name={progress.streak > 0 ? 'flame-outline' : 'moon-outline'} size={28} color={colors.accent} /> {progress.streak}
               </Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.streakLabel}>{progress.streak === 1 ? 'Tag in Folge' : 'Tage in Folge'}</Text>
