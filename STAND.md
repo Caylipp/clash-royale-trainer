@@ -14,7 +14,6 @@ Stand 2026-11-28.
 - Sobald der API-Key da ist: Worker deployen, Pfade `/health`, `/cards`, `/players/:tag`, `/meta/decks` gegen die echte API prüfen (bisher nur Mocks).
 - Auf dem iPhone testen: Tempo und Bewertung, Lesbarkeit des neuen Zyklus-Bildschirms und des Diagramms (nur Unit-Tests, kein Gerät/Simulator in dieser Sitzung).
 - Optional: tägliche Herausforderung mit festem Tages-Seed, Zyklus-Ergebnisse in die Statistik aufnehmen, Elixier-Trade-Quiz.
-- Ältere Emoji-Reste (Serie-Anzeige, Rang-Texte) durch schlichte Linien-Icons ersetzen.
 
 ## Offene Fragen an Philipp
 - Supercell-API-Key: schon eingetroffen? Ohne ihn bleiben Profil, Kartenbilder und Live-Meta aus.
